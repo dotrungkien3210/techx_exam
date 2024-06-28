@@ -6,8 +6,7 @@ import org.apache.spark.sql.SparkSession;
 public class SparkUtils {
     public SparkSession sparkSession;
     public JavaSparkContext sparkContext;
-
-    public void initSpark(){
+    public SparkUtils(){
         sparkSession = SparkSession.builder()
                 .appName("PDF to Elastic")
                 .master("local")

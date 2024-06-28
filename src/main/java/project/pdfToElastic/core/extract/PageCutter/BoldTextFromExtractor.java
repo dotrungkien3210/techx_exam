@@ -4,12 +4,11 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 
-import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class ExtractBoldTextFromPDF {
+public class BoldTextFromExtractor {
 
     public static void main(String[] args) {
         try {

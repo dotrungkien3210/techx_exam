@@ -2,38 +2,33 @@ package project.pdfToElastic.core.extract.PageCutter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import project.pdfToElastic.core.extract.FunctionSupport.CollectionsProcessing;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.io.Serializable;
 
-public class ContentsExtractor {
+public class BookContentsExtractor implements Serializable {
     public String extractContent(String keyStart, String keyend){
         String extractedText = "";
-        // Đường dẫn tới tệp PDF
-        String filePath = "input/s3-userguide.pdf";
 
+        String filePath = "input/s3-userguide.pdf";
         try {
-            // Tải tài liệu PDF
+
             PDDocument document = PDDocument.load(new File(filePath));
 
-            // Kiểm tra xem tài liệu có bị mã hóa không
+            // Kiểm tra mã hóa
             if (!document.isEncrypted()) {
-                // Sử dụng PDFTextStripper để trích xuất văn bản từ tài liệu
+
                 PDFTextStripper pdfStripper = new PDFTextStripper();
 
-                // Trích xuất văn bản từ toàn bộ tài liệu
                 String text = pdfStripper.getText(document);
 
-
-                // Tìm vị trí của "Table of Contents" và "AWS Glossary"
+                // Tìm vị trí
                 int start = text.indexOf(keyStart);
-                int end = text.indexOf(keyend);
+                int end = text.lastIndexOf(keyend);
 
                 // Cắt đoạn văn bản
                 if (start != -1 && end != -1 && start < end) {
-                    // Tìm vị trí end table of contents
+                    // Tìm end
                     int nextLineStart = text.indexOf("\n", end);
                     if (nextLineStart != -1) {
                         // Lấy vị trí bắt đầu của dòng tiếp theo
@@ -52,7 +47,6 @@ public class ContentsExtractor {
                 System.out.println("Cannot read document.");
             }
 
-            // Đóng tài liệu
             document.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,19 +57,50 @@ public class ContentsExtractor {
         return null;
     }
 
+    public void readFullContents(){
+        String filePath = "input/bobsleigh_tutorial.pdf";
+        try {
+            PDDocument document = PDDocument.load(new File(filePath));
 
+            if (!document.isEncrypted()) {
+                // cắt text
+                PDFTextStripper pdfStripper = new PDFTextStripper();
+                String text = pdfStripper.getText(document);
 
+                System.out.println(text);
+            }
 
-    public static void main(String[] args) {
-        ContentsExtractor contentsExtractor = new ContentsExtractor();
-        CollectionsProcessing listMapProcessing = new CollectionsProcessing();
-        String tableOfContents = contentsExtractor.extractContent("Table of Contents", "AWS Glossary ...");
-
-        if (!tableOfContents.isEmpty()){
-            listMapProcessing.contentsFormatted(tableOfContents);
-        }
-        else {
-            System.out.println("Không cắt được đoạn văn bản");
+            document.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
+    public String extractByPageNumber(int startPage,int endPage){
+        String content = "";
+
+        String filePath = "input/s3-userguide.pdf";
+        try {
+            PDDocument document = PDDocument.load(new File(filePath));
+            // Check có bị mã hóa không
+            if (!document.isEncrypted()) {
+
+                PDFTextStripper pdfStripper = new PDFTextStripper();
+
+                pdfStripper.setStartPage(startPage);  // start
+                pdfStripper.setEndPage(endPage);   // end
+
+                // cắt text
+                content = pdfStripper.getText(document);
+
+                System.out.println(content);
+            }
+
+            document.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
+
 }
