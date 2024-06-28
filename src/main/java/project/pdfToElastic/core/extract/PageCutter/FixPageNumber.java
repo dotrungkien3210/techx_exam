@@ -1,4 +1,4 @@
-package project.pdfToElastic.core.extract;
+package project.pdfToElastic.core.extract.PageCutter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -22,7 +22,7 @@ public class FixPageNumber {
 
                 // Thiết lập phạm vi trang cần đọc
                 pdfStripper.setStartPage(1);  // Trang bắt đầu (PDFBox sử dụng 1-based indexing)
-                pdfStripper.setEndPage(50);   // Trang kết thúc
+                pdfStripper.setEndPage(1);   // Trang kết thúc
 
                 // Trích xuất văn bản từ các trang đã chỉ định
                 String text = pdfStripper.getText(document);
@@ -36,5 +36,10 @@ public class FixPageNumber {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        FixPageNumber fixPageNumber = new FixPageNumber();
+        fixPageNumber.extractFixPage();
     }
 }

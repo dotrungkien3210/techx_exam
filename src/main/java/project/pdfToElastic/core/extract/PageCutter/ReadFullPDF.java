@@ -1,4 +1,4 @@
-package project.pdfToElastic.core.extract;
+package project.pdfToElastic.core.extract.PageCutter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;

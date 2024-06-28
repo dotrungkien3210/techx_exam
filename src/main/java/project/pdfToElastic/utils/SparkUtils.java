@@ -1,4 +1,4 @@
-package project.pdfToElastic;
+package project.pdfToElastic.utils;
 
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SparkSession;
