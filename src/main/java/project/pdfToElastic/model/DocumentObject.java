@@ -14,7 +14,7 @@ public class DocumentObject implements Serializable{
     public String paragraphContent;
 
 
-    public DocumentObject(int startPageNumber, int endPageNumber, int headerLineNumber, String paragraphContent, String headerName) {
+    public DocumentObject(int startPageNumber, int endPageNumber, int headerLineNumber, String headerName, String paragraphContent) {
         StringHashUtils stringHashUtils = new StringHashUtils();
         this.startPageNumber = startPageNumber;
         this.endPageNumber = endPageNumber;
