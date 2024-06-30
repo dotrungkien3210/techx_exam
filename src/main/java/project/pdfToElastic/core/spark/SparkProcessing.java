@@ -1,9 +1,9 @@
 package project.pdfToElastic.core.spark;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.spark.api.java.function.MapFunction;
-import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import project.pdfToElastic.model.DocumentObject;
 import project.pdfToElastic.utils.ElasticUtils;
 import project.pdfToElastic.utils.PDFUtils;
@@ -16,15 +16,18 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.RowFactory;
 import project.pdfToElastic.utils.TextUtils;
+
 import java.util.stream.Collectors;
 
 
 public class SparkProcessing implements Serializable {
+    private static final Logger log = LoggerFactory.getLogger(SparkProcessing.class);
     SparkSession spark;
 
     public SparkProcessing() {
@@ -34,8 +37,9 @@ public class SparkProcessing implements Serializable {
 
     /**
      * function này chuyển đổi từ list sang dataframe để tiện tính toán
-     * @param listContent
-     * @return
+     *
+     * @param listContent: list cần chuyển đổi sang df
+     * @return dataframe từ list truyền vào
      */
     public Dataset<Row> listToDataframe(List<String> listContent) {
         List<Row> rows = new ArrayList<>();
@@ -52,10 +56,10 @@ public class SparkProcessing implements Serializable {
                     );
                     rows.add(row);
                 } else {
-                    System.out.println("Invalid format for line: " + line);
+                    log.error("Invalid format for line: " + line);
                 }
             } catch (Exception e) {
-                System.out.println("Exception processing line: " + line + ", error: " + e.getMessage());
+                log.error("Exception processing line: " + line + ", error: " + e.getMessage());
             }
         }
 
@@ -71,9 +75,9 @@ public class SparkProcessing implements Serializable {
 
     /**
      * Function này tận dụng khả năng xử lý phân tán của spark
-     * @param df: dataframe truyền vào
+     *
+     * @param df:                     dataframe truyền vào
      * @param startContentsPageIndex: độ chênh lệch giữa pageLineNumber và thực tế
-     * @throws IOException
      */
     public Dataset<Row> extractContentByPage(Dataset<Row> df, int startContentsPageIndex) throws IOException {
         PDFUtils pdfUtils = new PDFUtils();
@@ -85,28 +89,26 @@ public class SparkProcessing implements Serializable {
                 .add("currentSessionHeader", DataTypes.StringType)
                 .add("paragraphContent", DataTypes.StringType);
 
-        Dataset<Row> paragraphDF = df.map((MapFunction<Row, Row>) row -> {
+        return df.map((MapFunction<Row, Row>) row -> {
             String currentSessionHeader = row.getString(0);
             int startPageNumber = row.getInt(1);
             String nextSessionHeader = row.getString(2);
             int endPageNumber = row.getInt(3);
-            String documents = pdfUtils.extractByPageNumber(startPageNumber + startContentsPageIndex, endPageNumber + startContentsPageIndex );
+            String documents = pdfUtils.extractByPageNumber(startPageNumber + startContentsPageIndex, endPageNumber + startContentsPageIndex);
             String paragraphContent = textUtils.getParagraphContents(documents, currentSessionHeader, nextSessionHeader);
-            int headerLineNumber = textUtils.getLineNumber(documents,currentSessionHeader);
-            return RowFactory.create(startPageNumber,endPageNumber,headerLineNumber,currentSessionHeader,paragraphContent);
+            int headerLineNumber = textUtils.getLineNumber(documents, currentSessionHeader);
+            return RowFactory.create(startPageNumber, endPageNumber, headerLineNumber, currentSessionHeader, paragraphContent);
         }, RowEncoder.apply(paragraphSchema));
-        return paragraphDF;
     }
 
     public void pushToElasticSearch(Dataset<Row> paragraphDF) throws IOException {
         ElasticUtils elasticUtils = new ElasticUtils();
         List<Row> rowList = paragraphDF.collectAsList();
         List<DocumentObject> documentObjects = rowList.stream()
-                .map(row -> new DocumentObject(row.getInt(0),row.getInt(1),row.getInt(2), row.getString(3),row.getString(4)))
+                .map(row -> new DocumentObject(row.getInt(0), row.getInt(1), row.getInt(2), row.getString(3), row.getString(4)))
                 .collect(Collectors.toList());
         elasticUtils.pushToElastic(documentObjects);
     }
-
 
 
     public void start(List<String> listContent, int startContentsPageIndex) throws IOException {

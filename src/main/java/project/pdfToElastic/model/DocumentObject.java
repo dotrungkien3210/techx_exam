@@ -5,7 +5,7 @@ import project.pdfToElastic.utils.StringHashUtils;
 
 import java.io.Serializable;
 
-public class DocumentObject implements Serializable{
+public class DocumentObject implements Serializable {
     public String documentID;
     public int startPageNumber;
     public int headerLineNumber;
@@ -21,7 +21,7 @@ public class DocumentObject implements Serializable{
         this.headerLineNumber = headerLineNumber;
         this.headerName = headerName;
         this.paragraphContent = paragraphContent;
-        this.documentID = stringHashUtils.stringToSHA(headerName+startPageNumber);
+        this.documentID = stringHashUtils.stringToSHA(headerName + startPageNumber);
     }
 
     public int getStartPageNumber() {

@@ -1,7 +1,7 @@
 package project.pdfToElastic.main;
 
 import project.pdfToElastic.utils.PDFUtils;
-import project.pdfToElastic.core.extract.PageCutter.ContentsExtractor;
+import project.pdfToElastic.core.pdfProcessing.ContentsExtractor;
 import project.pdfToElastic.core.spark.SparkProcessing;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class PDFToElastic {
      * Chọn KeyStart là Table of Contents vì quyển sách nào cũng có từ này trước khi bắt đầu mục lục
      * Chọn KeyEnd là ....... vì phần lớn sách dùng nhiều dấu ..... ở mục lục và không xài sau đó ở bất cứ đâu nữa
      * Ngoài ra mục lục và trang thực tế có sự chênh lệch nên ta phải căn lại số trang để đảm bảo crawl đúng
-     *
+     * <p>
      * Step 2: đóng gói lại thành object và
      */
 
@@ -25,7 +25,7 @@ public class PDFToElastic {
         PDFUtils pdfUtils = new PDFUtils();
         int startTableOfContents = pdfUtils.findFirstKeywordIndex("Table of Contents");
         int endTableOfContents = pdfUtils.findLastKeywordIndex("..........");
-        String tableOfContents = contentsExtractor.extractByIndex(pdfUtils.getDocument(),startTableOfContents, endTableOfContents);
+        String tableOfContents = contentsExtractor.extractByIndex(pdfUtils.getDocument(), startTableOfContents, endTableOfContents);
         List<String> extractContent = pdfUtils.contentsFormatted(tableOfContents);
         int startContentsPageIndex = pdfUtils.findPageIndexFromCharacterPosition(endTableOfContents);
         // Step 2

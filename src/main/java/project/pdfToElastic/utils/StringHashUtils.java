@@ -1,15 +1,19 @@
 package project.pdfToElastic.utils;
 
+import org.apache.log4j.Logger;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class StringHashUtils {
-    public StringHashUtils(){
+    private static final Logger log = Logger.getLogger(StringHashUtils.class);
+
+    public StringHashUtils() {
 
     }
 
-    public String stringToSHA(String inputString){
-        String hashedString = "";
+    public String stringToSHA(String inputString) {
+        String hashedString;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
@@ -20,12 +24,11 @@ public class StringHashUtils {
 //            System.out.println("Hashed string (SHA-256): " + hashedString);
 
         } catch (NoSuchAlgorithmException e) {
-            hashedString = inputString+System.currentTimeMillis();
-            e.printStackTrace();
+            hashedString = inputString + System.currentTimeMillis();
+            log.error("Exception occur: " + e.getMessage());
         }
         return hashedString;
     }
-
 
 
     private String bytesToHex(byte[] bytes) {

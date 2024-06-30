@@ -20,11 +20,10 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import project.pdfToElastic.config.Config;
 import project.pdfToElastic.model.DocumentObject;
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -32,15 +31,19 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class ElasticUtils {
+    private static final Logger log = LoggerFactory.getLogger(ElasticUtils.class);
     RestHighLevelClient client;
-    public ElasticUtils(){
+
+    public ElasticUtils() {
         RestClientBuilder builder = RestClient.builder(new HttpHost(Config.ELASTIC_HOST, Config.ELASTIC_PORT, "http"));
         client = new RestHighLevelClient(builder);
     }
 
-    public RestHighLevelClient getClient() {
-        return client;
-    }
+    /**
+     * Đẩy dữ liệu vào elasticsearch
+     *
+     * @param documentObjects: list các object
+     */
 
     public void pushToElastic(List<DocumentObject> documentObjects) throws IOException {
 
@@ -59,24 +62,30 @@ public class ElasticUtils {
         BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
 
         if (!bulkResponse.hasFailures()) {
-            System.out.println("All documents inserted successfully");
+            log.info("All documents inserted successfully");
         } else {
-            System.err.println("Failures occurred while inserting documents: " + bulkResponse.buildFailureMessage());
+            log.error("Failures occurred while inserting documents: {}", bulkResponse.buildFailureMessage());
         }
 
         client.close();
     }
 
+    /**
+     * Hàm này thực hiện generate query từ list keyword truyền vào
+     *
+     * @param kws :list các keyword cần tìm kiếm
+     * @param minimumMatch : số lượng matching tối thiểu
+     */
 
-    public SearchRequest keywordToQuery(List<String> kws,int minimumMatch) {
+
+    public SearchRequest keywordToQuery(List<String> kws, int minimumMatch) {
         SearchRequest searchRequest = new SearchRequest();
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         sourceBuilder.from(0);
         sourceBuilder.size(10000);
         sourceBuilder.timeout(new TimeValue(5, TimeUnit.MINUTES));
 
-        BoolQueryBuilder bool = new BoolQueryBuilder()
-                ;
+        BoolQueryBuilder bool = new BoolQueryBuilder();
         String[] includeFields = new String[]{"headerName", "paragraphContent"};
         String[] excludeFields = new String[]{};
 
@@ -111,16 +120,22 @@ public class ElasticUtils {
         return searchRequest;
     }
 
+    /**
+     * hàm này thực hiện fetch toàn bộ record trùng khớp với kết quả query
+     *
+     * @param searchRequest: query được generate
+     */
+
     public void fetchRecord(SearchRequest searchRequest) {
         try {
             SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-            System.out.println(searchResponse.getHits().getTotalHits());
+            log.info(String.valueOf(searchResponse.getHits().getTotalHits()));
             do {
                 searchResponse.getHits().iterator()
                         .forEachRemaining(hit -> {
                             try {
                                 Map<String, Object> source = hit.getSourceAsMap();
-                                System.out.println(source.get("paragraphContent") + "\n");
+                                System.out.println(source.get("headerName") + "\n");
                             } catch (Exception ignored) {
                             }
                         });
@@ -129,7 +144,7 @@ public class ElasticUtils {
 
             } while (searchResponse.getHits().getHits().length != 0);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception occur: {}", e.getMessage());
         }
         try {
             client.close();

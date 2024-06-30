@@ -12,22 +12,21 @@ import java.util.List;
 
 public class KeywordSearching {
 
-    public KeywordSearching(){
+    public KeywordSearching() {
 
     }
 
-    public void start(){
-        ElasticUtils elasticUtils =new ElasticUtils();
+    public void start() {
+        ElasticUtils elasticUtils = new ElasticUtils();
         List<String> kws = loadListKeyWord();
         SearchRequest searchRequest = elasticUtils.keywordToQuery(kws, Config.MINIMUM_MATCH);
         elasticUtils.fetchRecord(searchRequest);
 
     }
 
-    public List<String> loadListKeyWord(){
-        List<String> kws = new ArrayList<>();
+    public List<String> loadListKeyWord() {
         List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(Config.INPUT_KW))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(Config.INPUT_KW_PATH))) {
             String line;
             while ((line = br.readLine()) != null) {
                 lines.add(line);
@@ -35,8 +34,7 @@ public class KeywordSearching {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        kws.addAll(lines);
-        return kws;
+        return new ArrayList<>(lines);
     }
 
     public static void main(String[] args) {
