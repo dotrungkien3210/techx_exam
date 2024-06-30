@@ -1,70 +1,85 @@
 package project.pdfToElastic.model;
 
 
+import project.pdfToElastic.utils.StringHashUtils;
 
-public class DocumentObject {
-    public String startPagesNumber;
-    public String endPagesNumber;
-    public String headerLineNumber;
-    public String content;
+import java.io.Serializable;
+
+public class DocumentObject implements Serializable{
+    public String documentID;
+    public int startPageNumber;
+    public int headerLineNumber;
+    public int endPageNumber;
     public String headerName;
+    public String paragraphContent;
 
-    public DocumentObject(String startPagesNumber, String endPagesNumber, String headerLineNumber, String content, String headerName) {
-        this.startPagesNumber = startPagesNumber;
-        this.endPagesNumber = endPagesNumber;
+
+    public DocumentObject(int startPageNumber, int endPageNumber, int headerLineNumber, String paragraphContent, String headerName) {
+        StringHashUtils stringHashUtils = new StringHashUtils();
+        this.startPageNumber = startPageNumber;
+        this.endPageNumber = endPageNumber;
         this.headerLineNumber = headerLineNumber;
-        this.content = content;
         this.headerName = headerName;
+        this.paragraphContent = paragraphContent;
+        this.documentID = stringHashUtils.stringToSHA(headerName+startPageNumber);
     }
 
-    public String getStartPagesNumber() {
-        return startPagesNumber;
+    public int getStartPageNumber() {
+        return startPageNumber;
     }
 
-    public String getEndPagesNumber() {
-        return endPagesNumber;
+    public void setStartPageNumber(int startPagesNumber) {
+        this.startPageNumber = startPagesNumber;
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public String getHeaderLineNumber() {
+    public int getHeaderLineNumber() {
         return headerLineNumber;
+    }
+
+    public void setHeaderLineNumber(int headerLineNumber) {
+        this.headerLineNumber = headerLineNumber;
+    }
+
+    public int getEndPageNumber() {
+        return endPageNumber;
+    }
+
+    public void setEndPageNumber(int endPagesNumber) {
+        this.endPageNumber = endPagesNumber;
     }
 
     public String getHeaderName() {
         return headerName;
     }
 
-    public void setStartPagesNumber(String startPagesNumber) {
-        this.startPagesNumber = startPagesNumber;
-    }
-
-    public void setEndPagesNumber(String endPagesNumber) {
-        this.endPagesNumber = endPagesNumber;
-    }
-
-    public void setHeaderLineNumber(String headerLineNumber) {
-        this.headerLineNumber = headerLineNumber;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
     public void setHeaderName(String headerName) {
         this.headerName = headerName;
+    }
+
+    public String getParagraphContent() {
+        return paragraphContent;
+    }
+
+    public void setParagraphContent(String paragraphContent) {
+        this.paragraphContent = paragraphContent;
+    }
+
+    public String getDocumentID() {
+        return documentID;
+    }
+
+    public void setDocumentID(String documentID) {
+        this.documentID = documentID;
     }
 
     @Override
     public String toString() {
         return "DocumentObject{" +
-                "startPagesNumber='" + startPagesNumber + '\'' +
-                ", endPagesNumber='" + endPagesNumber + '\'' +
-                ", headerLineNumber='" + headerLineNumber + '\'' +
-                ", content='" + content + '\'' +
+                "startPagesNumber=" + startPageNumber +
+                ", headerLineNumber=" + headerLineNumber +
+                ", endPagesNumber=" + endPageNumber +
                 ", headerName='" + headerName + '\'' +
+                ", paragraphContent='" + paragraphContent + '\'' +
                 '}';
     }
 }

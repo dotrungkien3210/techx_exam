@@ -1,36 +1,40 @@
 package project.pdfToElastic.main;
 
-import project.pdfToElastic.core.extract.FunctionSupport.CollectionsProcessing;
-import project.pdfToElastic.core.extract.PageCutter.BookContentsExtractor;
+import project.pdfToElastic.utils.PDFUtils;
+import project.pdfToElastic.core.extract.PageCutter.ContentsExtractor;
 import project.pdfToElastic.core.spark.SparkProcessing;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 public class PDFToElastic {
 
     /**
-     * Đoạn code này thực hiện gọi tới hàm để cắt phần mục lục của quyển sách ra
+     * Step 1 thực hiện gọi tới hàm để cắt phần mục lục của quyển sách ra
      * Chọn KeyStart là Table of Contents vì quyển sách nào cũng có từ này trước khi bắt đầu mục lục
-     * Chọn KeyEnd là ....... vì phần lớn sách dùng nhiều dấu ... ở mục lục và không xài sau đó ở bất cứ đâu nữa
+     * Chọn KeyEnd là ....... vì phần lớn sách dùng nhiều dấu ..... ở mục lục và không xài sau đó ở bất cứ đâu nữa
+     * Ngoài ra mục lục và trang thực tế có sự chênh lệch nên ta phải căn lại số trang để đảm bảo crawl đúng
+     *
+     * Step 2: đóng gói lại thành object và
      */
 
-    public List<String> extractTableOfContents(){
-        BookContentsExtractor contentsExtractor = new BookContentsExtractor();
-        CollectionsProcessing listMapProcessing = new CollectionsProcessing();
-        String tableOfContents = contentsExtractor.extractContent("Table of Contents", "..........");
-        if (!tableOfContents.isEmpty()){
-            return listMapProcessing.contentsFormatted(tableOfContents);
-        }
-        else {
-            System.out.println("Không cắt được đoạn văn bản");
-        }
-        return null;
+    public void startProcessing() throws IOException {
+        // Step 1
+        ContentsExtractor contentsExtractor = new ContentsExtractor();
+        PDFUtils pdfUtils = new PDFUtils();
+        int startTableOfContents = pdfUtils.findFirstKeywordIndex("Table of Contents");
+        int endTableOfContents = pdfUtils.findLastKeywordIndex("..........");
+        String tableOfContents = contentsExtractor.extractByIndex(pdfUtils.getDocument(),startTableOfContents, endTableOfContents);
+        List<String> extractContent = pdfUtils.contentsFormatted(tableOfContents);
+        int startContentsPageIndex = pdfUtils.findPageIndexFromCharacterPosition(endTableOfContents);
+        // Step 2
+        SparkProcessing sparkProcessing = new SparkProcessing();
+        sparkProcessing.start(extractContent, startContentsPageIndex);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         PDFToElastic pdfToElastic = new PDFToElastic();
-        List<String> extractContent = pdfToElastic.extractTableOfContents();
-        SparkProcessing sparkProcessing = new SparkProcessing();
-        sparkProcessing.start(extractContent);
+        pdfToElastic.startProcessing();
     }
 }

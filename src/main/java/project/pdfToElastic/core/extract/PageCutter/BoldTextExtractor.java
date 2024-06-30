@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class BoldTextFromExtractor {
+public class BoldTextExtractor {
 
     public static void main(String[] args) {
         try {
@@ -25,10 +25,8 @@ public class BoldTextFromExtractor {
                 }
             };
 
-            // Extract text from entire document
             stripper.getText(document);
 
-            // Close the document
             document.close();
 
         } catch (IOException e) {
@@ -38,7 +36,6 @@ public class BoldTextFromExtractor {
 
     // Method to check if text is bold
     private static boolean isBold(List<TextPosition> textPositions) {
-        // Iterate through text positions and check font attributes
         for (TextPosition textPosition : textPositions) {
             if (textPosition.getFont().getFontDescriptor().isForceBold()) {
                 return true;
